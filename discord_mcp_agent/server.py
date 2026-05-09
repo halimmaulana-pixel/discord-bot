@@ -9,6 +9,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import aiohttp
 import discord
 from discord import Intents, File
@@ -152,6 +156,9 @@ class DiscordAgent:
         @self._client.event
         async def on_ready():
             try:
+                logger.info(f"Bot username: {self._client.user.name}#{self._client.user.discriminator}")
+                logger.info(f"Bot user ID: {self._client.user.id}")
+                
                 guild = self._client.get_guild(self.guild_id)
                 if not guild:
                     self._connection_error = ValueError(f"Guild with ID {self.guild_id} not found.")
@@ -662,7 +669,13 @@ async def main():
     """Async entry point for MCP server."""
     from mcp.server.stdio import stdio_server
     
+    logger.info(f"DISCORD_TOKEN: {'set' if os.getenv('DISCORD_TOKEN') else 'NOT SET'}")
+    logger.info(f"DISCORD_GUILD_ID: {os.getenv('DISCORD_GUILD_ID', 'NOT SET')}")
+    logger.info(f"DISCORD_CHANNEL: {os.getenv('DISCORD_CHANNEL', 'NOT SET')}")
+    
     logger.info("Starting Discord MCP Agent...")
+    
+    agent = await DiscordAgent.get_instance()
     
     async with stdio_server() as (read_stream, write_stream):
         await server.run(
